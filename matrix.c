@@ -46,9 +46,10 @@ typedef struct {
 } Cell;
 
 // Position struct
-typedef struct {
+typedef struct Position {
     int x;
     int y;
+    struct Position *next;
 } Position;
 
 // Route
@@ -66,27 +67,35 @@ Cell matrix[N][N];
 
 // FUNCTIONS
 void constructMatrix();
+Position *getRoute(Position *startpos, Position *endpos);
 int range(int p, int min, int max);
 void step(int i, int sx, int sy );
 int getNewX(int x, int y, int i, int ignore);
 int getNewY(int x, int y, int i, int ignore);
-void backtrace(int x, int y, int px, int py);
-Position findByName(char name[8]);
+int backtrace(Position ptns[100]);
+Position *findByName(char name[8]);
 void reset();
 void printMatrix(int opt);
 
-void run(Position startpos, Position endpos) {
+Position *getRoute(Position *startpos, Position *endpos) {
     int i = 1;
 
-    reset();
-    matrix[endpos.x][endpos.y].value = i;
+    Position *start = (Position*)malloc(sizeof(Position));
+    start->x = endpos->x;
+    start->y = endpos->y;
+    start->next = NULL;
 
-    while (matrix[startpos.x][startpos.y].value == 0) {
-        step(i, endpos.x, endpos.y);
+    reset();
+    matrix[endpos->x][endpos->y].value = i;
+
+    while (matrix[startpos->x][startpos->y].value == 0) {
+        step(i, endpos->x, endpos->y);
         i++;
     }
 
-    backtrace(startpos.x, startpos.y, startpos.x, startpos.y);
+    while(backtrace(start)) continue;
+
+    return start;
 }
 
 RoutePoint *createRoutePoint(int x, int y, int pos, RoutePoint *prev) {
@@ -164,7 +173,30 @@ int getNewY(int x, int y, int i, int ignore) {
     return newy;
 }
 
-void backtrace(int x, int y, int px, int py) {
+int backtrace(Position *start) {
+    if (start == NULL) {
+        return 0;
+    }
+
+    struct Position *point = start;
+    while (point->next != NULL && point->next->next !=NULL) point = point->next;
+
+    int x, y, px, py;
+
+    if (point->next != NULL) {
+        px = point->x;
+        py = point->y;
+
+        point = point->next;
+
+        x = point->x;
+        y = point->y;
+    } else {
+        x = px = point->x;
+        y = py = point->y;
+    }
+
+
     int i = matrix[x][y].value;
     int newx = x, newy = y;
 
@@ -179,24 +211,38 @@ void backtrace(int x, int y, int px, int py) {
 
     if (matrix[x][y].name[0] != 'e') {
         printf("%s ", matrix[x][y].name);
+
+        Position *newpos = (Position*)malloc(sizeof(Position));
+        newpos->x = newx;
+        newpos->y = newy;
+        newpos->next = NULL;
+
+        point->next = newpos;
     }
 
     if (matrix[x][y].value > 1) {
-        backtrace( newx, newy, x, y );
+        return 0;
     }
+
+    return 1;
 }
 
-Position findByName(char name[8]) {
+Position *findByName(char *name) {
+    Position *pos = (Position*)malloc(sizeof(Position));
     int x, y;
     for (y = 0; y < N; y++) {
         for (x = 0; x < N; x++) {
             if (strcmp(matrix[x][y].name, name) == 0) {
-                return (Position) {x, y};
+                pos->x = x;
+                pos->y = y;
+                return pos;
             }
         }
     }
 
-    return (Position) { -1, -1};
+    pos->x = -1;
+    pos->y = -1;
+    return pos;
 }
 
 void reset() {
@@ -225,7 +271,10 @@ void constructMatrix () {
 
 void printMatrix(int opt) {
     Cell c;
-    int x, y;
+    int x, y, i, end;
+    char str[5];
+    str[4] = '\0';
+
     for (y = 0; y < N; y++) {
         for (x = 0; x < N; x++) {
             c = matrix[x][y];
@@ -233,7 +282,19 @@ void printMatrix(int opt) {
             if (opt) {
                 printf("%d ",c.value);
             } else {
-                printf("%s ",c.name);
+                end = 0;
+                for (i = 0; i < 4; i++) {
+                    if (c.name[i] == '\0') {
+                        end = 1;
+                    }
+
+                    if (!end) {
+                        str[i] = c.name[i];
+                    } else {
+                        str[i] = ' ';
+                    }
+                }
+                printf("%s ", str);
             }
         }
         printf("\n");
