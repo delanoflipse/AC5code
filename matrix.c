@@ -42,7 +42,7 @@ const char* MATRIX_NAMES[13][13] = {
 // Cell struct
 typedef struct {
     int value;
-    char *name;
+    char name[8];
 } Cell;
 
 // Position struct
@@ -216,18 +216,19 @@ void constructMatrix () {
             int v = MATRIX_VALUES[y][x];
             Cell c;
             c.value = v;
-            strncpy(c.name,  &MATRIX_NAMES[y][x], 8);
+            strncpy(c.name,  MATRIX_NAMES[y][x], 8);
             matrix[x][y] = c;
-            printf("%d,%s\n", c.name, c.value);
+//            printf("%d,%s", c.value, c.name);
         }
     }
 }
 
 void printMatrix(int opt) {
+    Cell c;
     int x, y;
     for (y = 0; y < N; y++) {
         for (x = 0; x < N; x++) {
-            Cell c = matrix[x][y];
+            c = matrix[x][y];
 
             if (opt) {
                 printf("%d ",c.value);
