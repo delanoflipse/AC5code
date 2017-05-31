@@ -80,10 +80,10 @@ void printMatrix(int opt);
 Position *getRoute(Position *startpos, Position *endpos) {
     int i = 1;
 
-    Position *start = (Position*)malloc(sizeof(Position));
-    start->x = endpos->x;
-    start->y = endpos->y;
-    start->next = NULL;
+    Position *list = (Position*)malloc(sizeof(Position));
+    list->x = startpos->x;
+    list->y = startpos->y;
+    list->next = NULL;
 
     reset();
     matrix[endpos->x][endpos->y].value = i;
@@ -93,9 +93,9 @@ Position *getRoute(Position *startpos, Position *endpos) {
         i++;
     }
 
-    while(backtrace(start)) continue;
+    while(backtrace(list)) continue;
 
-    return start;
+    return list;
 }
 
 RoutePoint *createRoutePoint(int x, int y, int pos, RoutePoint *prev) {
@@ -196,9 +196,8 @@ int backtrace(Position *start) {
         y = py = point->y;
     }
 
-
     int i = matrix[x][y].value;
-    int newx = x, newy = y;
+    int newx, newy;
 
     // Prioritise going straight
     if (x - px) {
@@ -209,22 +208,23 @@ int backtrace(Position *start) {
         newx = getNewX( x, y, i, newy - y ); // do not go diagonal
     }
 
-    if (matrix[x][y].name[0] != 'e') {
-        printf("%s ", matrix[x][y].name);
-
-        Position *newpos = (Position*)malloc(sizeof(Position));
-        newpos->x = newx;
-        newpos->y = newy;
-        newpos->next = NULL;
-
-        point->next = newpos;
+    if (matrix[x][y].name[0] != 'e' && matrix[x][y].name[0] != '\0') {
+        printf("%s\n", matrix[x][y].name);
     }
+
+    Position *newpos = (Position*)malloc(sizeof(Position));
+    newpos->x = newx;
+    newpos->y = newy;
+    newpos->next = NULL;
+
+    point->next = newpos;
+
 
     if (matrix[x][y].value > 1) {
-        return 0;
+        return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 Position *findByName(char *name) {
@@ -280,7 +280,7 @@ void printMatrix(int opt) {
             c = matrix[x][y];
 
             if (opt) {
-                printf("%d ",c.value);
+                printf(c.value < 0 ? "%d " : " %d ", c.value);
             } else {
                 end = 0;
                 for (i = 0; i < 4; i++) {
