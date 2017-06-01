@@ -1,13 +1,11 @@
-#define N 13
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-// TYPEDEFS
+#include "matrix.h"
+#define N 13
 
 // base matrix
-const int MATRIX_VALUES[N][N] = {
+const int MATRIX_VALUES[13][13] = {
         {-1, -1, -1, -1, 0, -1, 0, -1, 0, -1, -1, -1, -1}, //1
         {-1, -1, -1, -1, 0, -1, 0, -1, 0, -1, -1, -1, -1}, //2
         {-1, -1,  0,  0, 0,  0, 0,  0, 0,  0,  0, -1, -1}, //3
@@ -39,50 +37,13 @@ const char* MATRIX_NAMES[13][13] = {
         ,{""   , "", ""     , ""     , "1"    , ""     , "2"    , ""     , "3"    , ""     , ""     , "", "" }
 };
 
-// Cell struct
-typedef struct {
-    int value;
-    char name[8];
-} Cell;
+Cell matrix[13][13];
 
-// Position struct
-typedef struct Position {
-    int x;
-    int y;
-    struct Position *next;
-} Position;
-
-// Route
-typedef struct RoutePoint {
-    int x;
-    int y;
-    struct RoutePoint *left;
-    struct RoutePoint *right;
-    struct RoutePoint *up;
-    struct RoutePoint *down;
-} RoutePoint;
-
-// GLOBAL VARS
-Cell matrix[N][N];
-
-// FUNCTIONS
-void constructMatrix();
-Position *getRoute(Position *startpos, Position *endpos);
-int range(int p, int min, int max);
-void step(int i, int sx, int sy );
-int getNewX(int x, int y, int i, int ignore);
-int getNewY(int x, int y, int i, int ignore);
-int backtrace(Position ptns[100]);
-Position *findByName(char name[8]);
-void reset();
-void printMatrix(int opt);
-
+// FUNCTION DEFINITIONS
 Position *getRoute(Position *startpos, Position *endpos) {
     int i = 1;
 
-    Position *list = (Position*)malloc(sizeof(Position));
-    list->x = startpos->x;
-    list->y = startpos->y;
+    Position *list = createPosition(startpos->x, startpos->y);
     list->next = NULL;
 
     reset();
@@ -96,6 +57,14 @@ Position *getRoute(Position *startpos, Position *endpos) {
     while(backtrace(list)) continue;
 
     return list;
+}
+
+Position *createPosition(int x, int y) {
+    Position *p = (Position*)malloc(sizeof(Position));
+    p->x = x;
+    p->y = y;
+
+    return p;
 }
 
 RoutePoint *createRoutePoint(int x, int y, int pos, RoutePoint *prev) {
@@ -208,9 +177,9 @@ int backtrace(Position *start) {
         newx = getNewX( x, y, i, newy - y ); // do not go diagonal
     }
 
-    if (matrix[x][y].name[0] != 'e' && matrix[x][y].name[0] != '\0') {
-        printf("%s\n", matrix[x][y].name);
-    }
+//    if (matrix[x][y].name[0] != 'e' && matrix[x][y].name[0] != '\0') {
+//        printf("%s\n", matrix[x][y].name);
+//    }
 
     Position *newpos = (Position*)malloc(sizeof(Position));
     newpos->x = newx;
@@ -218,7 +187,6 @@ int backtrace(Position *start) {
     newpos->next = NULL;
 
     point->next = newpos;
-
 
     if (matrix[x][y].value > 1) {
         return 1;
@@ -299,4 +267,9 @@ void printMatrix(int opt) {
         }
         printf("\n");
     }
+}
+
+void joinRoutes(Position *list, Position *list2) {
+    while (list->next && list->next->next) list = list-> next;
+    list->next = list2;
 }

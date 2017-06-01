@@ -1,15 +1,7 @@
 #include <stdio.h>
-
-// Position struct
-typedef struct {
-    int x;
-    int y;
-} Position;
-
-extern void constructMatrix();
-extern Position *getRoute(Position *startpos, Position *endpos);
-extern void printMatrix(int opts);
-extern Position *findByName(char *name);
+#include "matrix.h"
+#include "challenge1.h"
+#include "serial.h"
 
 char instructions[100];
 
@@ -17,6 +9,7 @@ char start_str[8], mid_str[8], end_str[8];
 Position *start, *mid, *end;
 
 void challenge1() {
+    Position *list;
     // Build the matrix
     constructMatrix();
 
@@ -44,6 +37,11 @@ void challenge1() {
     printf("mid: (%d, %d)\n", mid->x, mid->y);
     printf("end: (%d, %d)\n", end->x, end->y);
 
-    getRoute(start, mid);
-    getRoute(mid, end);
+    list = getRoute(start, mid);
+    joinRoutes(list, getRoute(mid, end));
+
+    while (list->next) {
+        printf("%s : (%d, %d)\n", matrix[list->x][list->y].name, list->x, list->y);
+        list = list->next;
+    }
 }

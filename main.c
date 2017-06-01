@@ -1,6 +1,5 @@
 #include <stdio.h>
-
-extern void challenge1();
+#include "challenge1.h"
 
 int main() {
     char opt;
