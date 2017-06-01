@@ -236,34 +236,48 @@ void constructMatrix () {
         }
     }
 }
-
-void printMatrix(int opt) {
+void printMatrixNames() {
     Cell c;
     int x, y, i, end;
     char str[5];
     str[4] = '\0';
+    char l;
 
     for (y = 0; y < N; y++) {
         for (x = 0; x < N; x++) {
             c = matrix[x][y];
+            end = 0;
 
-            if (opt) {
-                printf(c.value < 0 ? "%d " : " %d ", c.value);
-            } else {
-                end = 0;
-                for (i = 0; i < 4; i++) {
-                    if (c.name[i] == '\0') {
-                        end = 1;
-                    }
+            for (i = 0; i < 4; i++) {
+                if (c.name[i] == '\0') end = 1;
 
-                    if (!end) {
-                        str[i] = c.name[i];
-                    } else {
-                        str[i] = ' ';
-                    }
-                }
-                printf("%s ", str);
+                if (!end) str[i] = c.name[i];
+                else str[i] = ' ';
             }
+
+            printf("%s ", str);
+        }
+        printf("\n");
+    }
+}
+
+void printMatrix(Position *pos, Position *start, Position *mid, Position *end) {
+    Cell c;
+    int x, y, i;
+    char str[5];
+    str[4] = '\0';
+    char l;
+
+    for (y = 0; y < N; y++) {
+        for (x = 0; x < N; x++) {
+            c = matrix[x][y];
+            l = c.value < 0 ? ' ' : '*';
+            if (x == start->x && y == start->y) l = 'S';
+            else if (x == mid->x && y == mid->y) l = 'M';
+            else if (x == end->x && y == end->y) l = 'E';
+
+            if (x == pos->x && y == pos->y) l = '@';
+            printf("%c ", l);
         }
         printf("\n");
     }
@@ -271,5 +285,5 @@ void printMatrix(int opt) {
 
 void joinRoutes(Position *list, Position *list2) {
     while (list->next && list->next->next) list = list-> next;
-    list->next = list2;
+    list->next = list2->next;
 }
