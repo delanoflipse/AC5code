@@ -41,7 +41,7 @@ int getNewY(int x, int y, int i, int ignore);
 int backtrace(Position ptns[100]);
 Position *findByName(char name[8]);
 void reset();
-void printMatrix(Position *pos, Position *start, Position *mid, Position *end);
+void printMatrix(Position *pos, Position *points);
 void joinRoutes(Position *list, Position *list2);
 Position *createPosition(int x, int y);
 void printMatrixNames();

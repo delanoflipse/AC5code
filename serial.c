@@ -113,7 +113,7 @@ int serialInit()
     // Initialize the parameters of the COM port
     //----------------------------------------------------------
 
-    initSio(hSerial);
+    initSio();
 
     return 1;
 }

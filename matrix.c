@@ -44,7 +44,6 @@ Position *getRoute(Position *startpos, Position *endpos) {
     int i = 1;
 
     Position *list = createPosition(startpos->x, startpos->y);
-    list->next = NULL;
 
     reset();
     matrix[endpos->x][endpos->y].value = i;
@@ -63,6 +62,7 @@ Position *createPosition(int x, int y) {
     Position *p = (Position*)malloc(sizeof(Position));
     p->x = x;
     p->y = y;
+    p->next = NULL;
 
     return p;
 }
@@ -181,10 +181,7 @@ int backtrace(Position *start) {
 //        printf("%s\n", matrix[x][y].name);
 //    }
 
-    Position *newpos = (Position*)malloc(sizeof(Position));
-    newpos->x = newx;
-    newpos->y = newy;
-    newpos->next = NULL;
+    Position *newpos = createPosition(newx, newy);
 
     point->next = newpos;
 
@@ -196,7 +193,7 @@ int backtrace(Position *start) {
 }
 
 Position *findByName(char *name) {
-    Position *pos = (Position*)malloc(sizeof(Position));
+    Position *pos = createPosition(-1, -1);
     int x, y;
     for (y = 0; y < N; y++) {
         for (x = 0; x < N; x++) {
@@ -208,8 +205,6 @@ Position *findByName(char *name) {
         }
     }
 
-    pos->x = -1;
-    pos->y = -1;
     return pos;
 }
 
@@ -257,13 +252,14 @@ void printMatrixNames() {
 
             printf("%s ", str);
         }
-        printf("\n");
+        printf("\n\n");
     }
 }
 
-void printMatrix(Position *pos, Position *start, Position *mid, Position *end) {
+void printMatrix(Position *pos, Position *points) {
     Cell c;
-    int x, y, i;
+    Position *temp;
+    int x, y, i, n;
     char str[5];
     str[4] = '\0';
     char l;
@@ -272,9 +268,13 @@ void printMatrix(Position *pos, Position *start, Position *mid, Position *end) {
         for (x = 0; x < N; x++) {
             c = matrix[x][y];
             l = c.value < 0 ? ' ' : '*';
-            if (x == start->x && y == start->y) l = 'S';
-            else if (x == mid->x && y == mid->y) l = 'M';
-            else if (x == end->x && y == end->y) l = 'E';
+            n = 1;
+            temp = points;
+            while (temp) {
+                if (x == temp->x && y == temp->y) l = n + 48;
+                temp = temp->next;
+                n++;
+            }
 
             if (x == pos->x && y == pos->y) l = '@';
             printf("%c ", l);
