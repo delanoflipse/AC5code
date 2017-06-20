@@ -2,25 +2,25 @@
 #include <stdlib.h>
 #include "challenge12.h"
 #include "serial.h"
+#include <time.h>
 
-char pos_str[8], input;
-Position *start = NULL, *list, *last, *at;
 
-char FORWARD_STATE   = 0b0000001;
-char LEFT_STATE      = 0b0000010;
-char RIGHT_STATE     = 0b0000100;
-char ROTATE_STATE    = 0b0001000;
-char STOP_STATE      = 0b0010000;
-
-void printbinchar(char character)
-{
-    char output[9];
-    itoa(character, output, 2);
-    printf("%s\n", output);
-}
+char FORWARD_STATE   = 0b00000010;
+char LEFT_STATE      = 0b01101100;
+char RIGHT_STATE     = 0b01110010;
+char ROTATE_STATE    = 0b01110011;
+char STOP_STATE      = 0b00001000;
+char START_SIGNAL    = 0b01111000;
 
 void challenge1() {
-    int n = 0;
+    char pos_str[8], input;
+    time_t last_time, current_time;
+    double dt;
+
+    Position *start = NULL, *list, *last, *at;
+
+    time ( &last_time );
+    int n = 0, i = 0;
     Position *temp;
 
     // clear
@@ -79,40 +79,54 @@ void challenge1() {
     printf("START\n");
     list = list->next;
     printf("Now at (%d, %d)\n", list->x, list->y);
+
+    writeByte(&START_SIGNAL);
+    getDirection(list);
+
     printMatrix(list, start);
 
-    writeByte(&FORWARD_STATE);
 
-    char inp;
+
+    char inp, inp_bin[9];
     while (list->next) {
         char x = input;
         while (x == input) {
             readByte(&input);
         }
 
-        printbinchar(input);
-        printf("\n%c\n", input);
-
         system("@cls||clear");
 
+        itoa(input, inp_bin, 2);
+        printf("Recieved: %c [%s]\n", input, inp_bin);
+
+        time( &current_time );
+        dt = difftime(current_time, last_time);
+        if (dt >= 1) {
+            last_time = current_time;
+        }
+
+        printf("dt: %f\n", dt);
+
         if (input == 'q') break;
-        else if(input == 0b00000010 || input == 0b00000011) {
+        else if(input == 0b00011111 || input == 0b00011110) {
 //        else if(input == 'x') {
+            printf("n: %d\n", ++i);
             if (list->next && list->next->next) {
-                // Check for mid pos
+                // Check for checkpoints
                 if (at->next && list->next->x == at->next->x && list->next->y == at->y) {
                     at = at->next;
                     printf("Arrived at %s\n", matrix[at->x][at->y].name);
                 }
 
                 getDirection(list);
-
-                last = list;
-                list = list->next;
+                if (dt >= 1) {
+                    last = list;
+                    list = list->next;
+                }
             } else {
                 break;
             }
-        } else if(input == 0b00000100 || input == 0b00000101){
+        } else if(input == 0b11100001 || input == 0b11100000){
 //        } else if(input == 'x'){
             matrix[list->x][list->y].value = -1;
             Position *newlist;
@@ -128,7 +142,6 @@ void challenge1() {
             list = createPosition(list->x, list->y);
             list->next = newlist;
             getDirection(list);
-
         }
 
         printf("Now at (%d, %d)\n", list->x, list->y);
@@ -162,5 +175,7 @@ void getDirection(Position *list) {
     else if (cross > 0) {
         writeByte(&RIGHT_STATE);
         printf("Going right.\n");
+    } else {
+        printf("NIKS\n");
     }
 }
