@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "challenge12.h"
@@ -9,7 +10,7 @@ char FORWARD_STATE   = 0b00000010;
 char LEFT_STATE      = 0b01101100;
 char RIGHT_STATE     = 0b01110010;
 char ROTATE_STATE    = 0b01110011;
-char STOP_STATE      = 0b00001000;
+char STOP_ST1ATE     = 0b00001000;
 char START_SIGNAL    = 0b01111000;
 
 void challenge1() {
@@ -86,10 +87,10 @@ void challenge1() {
 
     char inp, inp_bin[9];
     while (list->next) {
-//        char x = input;
-//        while (x == input) {
+        char x = input;
+        while (x == input) {
             readByte(&input);
-//        }
+        }
 
         system("@cls||clear");
         printf("Recieved: %c [%s]\n", input, charToBinary(input));
@@ -100,30 +101,28 @@ void challenge1() {
         printf("dt: %f\n", dt);
 
         if (input == 'q') break;
-        else if(input == 0b01111000) {
-//        else if(input == 0b00011111 || input == 0b00011110) {
+        else if(input == 0b01111000 || input == 0b01111001) {
 //        else if(input == 'x') {
             printf("n: %d\n", ++i);
-            if (list->next && list->next->next && list->next->next->next) {
+            if (list->next && list->next->next) {
                 // Check for checkpoints
                 if (at->next && list->next->x == at->next->x && list->next->y == at->next->y) {
                     at = at->next;
                     printf("Arriving at %s\n", matrix[at->x][at->y].name);
                 }
 
+                usleep(300 * 1000);
                 getDirection(list);
 
                 if (dt >= 0.5) {
                     last = list;
                     list = list->next;
-                    last_time = current_time;
                 }
             } else {
                 break;
             }
-        } else if(input == 0b01101101){
-//        } else if(input == 0b11100001 || input == 0b11100000){
-//        } else if(input == 'x'){
+        } else if(input == 0b01101100 || input == 0b01101101){
+//        } else if(input == 'm'){
             matrix[list->x][list->y].value = -10;
             Position *newlist;
             printf("Mine found! @ %s\n", matrix[list->x][list->y].name);
@@ -137,6 +136,9 @@ void challenge1() {
 
             list = createPosition(list->x, list->y);
             list->next = newlist;
+            getDirection(list);
+            list = list->next;
+            usleep(500 * 1000);
             getDirection(list);
             list = list->next;
         }

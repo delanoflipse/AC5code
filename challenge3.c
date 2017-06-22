@@ -2,6 +2,7 @@
 // Created by Delano on 20/06/2017.
 //
 
+#include <unistd.h>
 #include "challenge3.h"
 #include "challenge12.h"
 #include <stdio.h>
@@ -110,10 +111,10 @@ void challenge3(int run2) {
     i = 0;
     char inp, inp_bin[9];
     while (list->next) {
-//        char x = input;
-//        while (x == input) {
-        readByte(&input);
-//        }
+        char x = input;
+        while (x == input) {
+            readByte(&input);
+        }
 
         system("@cls||clear");
         printf("Recieved: %c [%s]\n", input, charToBinary(input));
@@ -124,12 +125,11 @@ void challenge3(int run2) {
         printf("dt: %f\n", dt);
 
         if (input == 'q') break;
-        else if(input == 0b01111000) {
+        else if(input == 0b01111000 || input == 0b01111001) {
 //        else if(input == 0b00011111 || input == 0b00011110) {
 //        else if(input == 'x') {
             printf("n: %d\n", ++i);
             if (list->next && list->next->next && list->next->next->next) {
-                getDirection(list);
 
                 if (dt >= 0.5) {
                 //if (dt >= 0) {
@@ -137,6 +137,9 @@ void challenge3(int run2) {
                     list = list->next;
                     last_time = current_time;
                 }
+
+                usleep(300 * 1000);
+                getDirection(list);
 
                 if (at->next && list->x == at->next->x && list->y == at->next->y) {
                     at = at->next;
@@ -158,7 +161,8 @@ void challenge3(int run2) {
             } else {
                 break;
             }
-        } else if(input == 0b01101101){
+
+        } else if(input == 0b01101100 || input == 0b01101101){
 //        } else if(input == 0b11100001 || input == 0b11100000){
 //        } else if(input == 'x'){
             matrix[list->x][list->y].value = -10;
@@ -188,6 +192,9 @@ void challenge3(int run2) {
 
             list = createPosition(list->x, list->y);
             list->next = newlist;
+            getDirection(list);
+            list = list->next;
+            usleep(500 * 1000);
             getDirection(list);
             list = list->next;
         }
