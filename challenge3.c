@@ -10,10 +10,10 @@
 #include "serial.h"
 #include <time.h>
 
-
+// make mines accessible for both calls to challenge3()
 Position *mines = NULL;
 void challenge3(int run2) {
-
+    // define variables
     char pos_str[8], input, name[6];
     clock_t last_time, current_time;
     double dt;
@@ -21,6 +21,7 @@ void challenge3(int run2) {
     int n = 0, i, j, k, nMines = 0;
     Position *temp;
     last_time = clock();
+
     // clear
     system("@cls||clear");
 
@@ -100,17 +101,19 @@ void challenge3(int run2) {
     last = list;
 
     printf("START\n");
-
+    // Tell the robot to start moving
     writeByte(&START_SIGNAL);
     getDirection(list);
 
     list = list->next; // set correct start for robot logic(as in: next crossing is the corner after the number)
     printf("Now at (%d, %d)\n", list->x, list->y);
-
+    // current status
     printMatrix(list, start);
     i = 0;
-    char inp, inp_bin[9];
+
+    // while we still have points left
     while (list->next) {
+        // If the input is different from last time
         char x = input;
         while (x == input) {
             readByte(&input);
@@ -119,34 +122,39 @@ void challenge3(int run2) {
         system("@cls||clear");
         printf("Recieved: %c [%s]\n", input, charToBinary(input));
 
+        // get time since last input
         current_time = clock();
         dt = (double) (current_time - last_time) / CLOCKS_PER_SEC;
 
         printf("dt: %f\n", dt);
 
+        // debug quit
         if (input == 'q') break;
-        else if(input == 0b01111000 || input == 0b01111001) {
-//        else if(input == 0b00011111 || input == 0b00011110) {
-//        else if(input == 'x') {
-            printf("n: %d\n", ++i);
-            if (list->next && list->next->next && list->next->next->next) {
+            // crossing
+        else if(input == 0b01111000 || input == 0b01111001) {  // 'x' or 'y'
+            printf("n: %d\n", ++i); // debug statement
 
-                if (dt >= 0.5) {
-                //if (dt >= 0) {
-                    last = list;
-                    list = list->next;
-                    last_time = current_time;
-                }
+            // If not the end of the list
+            if (list->next && list->next->next) {
 
-                usleep(300 * 1000);
+                // in case still on a crossing, sleep for some time
+                usleep(300 * 1000); // warning: depreciated, but still works so fingers crossed
+                // send new direction
                 getDirection(list);
 
+                // in case something went wrong, do not allow more then two crossings in 0.5 seconds
+                if (dt >= 0.5) {
+                    last = list;
+                    list = list->next;
+                }
+
+                // check if we are arriving at a checkpoint
                 if (at->next && list->x == at->next->x && list->y == at->next->y) {
                     at = at->next;
                     printf("Arriving at %s\n", matrix[at->x][at->y].name);
                 }
 
-                // Check for checkpoints
+                // Check for any other checkpoints we may have moved over
                 temp = at;
 
                 while(temp->next && temp->next->next) {
@@ -162,23 +170,25 @@ void challenge3(int run2) {
                 break;
             }
 
-        } else if(input == 0b01101100 || input == 0b01101101){
-//        } else if(input == 0b11100001 || input == 0b11100000){
-//        } else if(input == 'x'){
+        } else if(input == 0b01101100 || input == 0b01101101){ // 'm' or 'n'
+            // set cell as mine
             matrix[list->x][list->y].value = -10;
 
             if (run2) {
+                // check if it is the missing mine
                 if (!containsPosition(mines, createPosition(list->x, list->y))) {
                     writeByte(&STOP_STATE);
                     break;
                 }
             } else {
+                // save mine location
                 if (mines != NULL)
                     appendPosition(mines, createPosition(list->x, list->y));
                 else
                     mines = createPosition(list->x, list->y);
             }
 
+            // get new route
             nMines++;
             Position *newlist;
             printf("Mine found! @ %s\n", matrix[list->x][list->y].name);
@@ -192,6 +202,7 @@ void challenge3(int run2) {
 
             list = createPosition(list->x, list->y);
             list->next = newlist;
+            // send next two directions
             getDirection(list);
             list = list->next;
             usleep(500 * 1000);
@@ -204,18 +215,22 @@ void challenge3(int run2) {
         printMatrix(list, at->next);
     }
 
+    // print more status
+    printf("Now at (%d, %d)\n", list->x, list->y);
     writeByte(&STOP_STATE);
+
     if (run2) {
+        // We found the mine, hooray!
         printf("Found the mine! press a key to continue\n");
         getch();
         return;
     } else {
+        // Get ready for stage 2
         printMatrix(list, start);
         printf("All edges searched, press any key go to contiue to phase 2\n");
         getch();
 
         challenge3(1);
     }
-
 
 }

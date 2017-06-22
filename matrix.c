@@ -39,21 +39,28 @@ Cell matrix[N][N];
 Position *getRoute(Position *startpos, Position *endpos) {
     int i = 1;
 
+    // Make a position list, starting with the start position
     Position *list = createPosition(startpos->x, startpos->y);
 
+    // reset everything
     reset();
+
+    // mark the end position
     matrix[endpos->x][endpos->y].value = i;
 
+    // run step function while start position is not marked
     while (matrix[startpos->x][startpos->y].value == 0) {
         step(i, endpos->x, endpos->y);
         i++;
     }
 
+    // run backtrace
     while(backtrace(list)) continue;
 
     return list;
 }
 
+// Create a new position pointer for location (x, y)
 Position *createPosition(int x, int y) {
     Position *p = (Position*)malloc(sizeof(Position));
     p->x = x;
@@ -63,20 +70,6 @@ Position *createPosition(int x, int y) {
     return p;
 }
 
-RoutePoint *createRoutePoint(int x, int y, int pos, RoutePoint *prev) {
-    RoutePoint *point = malloc (sizeof (struct RoutePoint));
-    point->x = x;
-    point->y = y;
-    if (prev != NULL) {
-        if (pos == 0) prev->left = point;
-        else if (pos == 1) prev->right = point;
-        else if (pos == 2) prev->up = point;
-        else if (pos == 3) prev->down = point;
-    }
-
-    return point;
-}
-
 // min <= p <= max
 int range(int p, int min, int max) {
     if (p <= min) return min;
@@ -84,16 +77,18 @@ int range(int p, int min, int max) {
     return p;
 }
 
+// wave formation lee algorithm
 void step(int i, int sx, int sy ) {
     int x, y, xi, yi, rx, ry, neighbour;
 
-    // move 1 block outside
+    // make wave one size bigger(contained by the matrix)
     xi = range(sx - i - 1, 0, N);
     rx = range(sx + i + 1, 0, N);
 
     yi = range(sy - i - 1, 0, N);
     ry = range(sy + i + 1, 0, N);
 
+    // for each cell
     for (x = xi; x < rx; x++) {
         for (y = yi; y < ry; y++) {
             int value = matrix[x][y].value;
@@ -108,11 +103,13 @@ void step(int i, int sx, int sy ) {
             else if (y > 0 && matrix[x][y - 1].value == i)      neighbour = 1;
             else if (y < N - 1 && matrix[x][y + 1].value == i)  neighbour = 1;
 
+            // mark self
             if (neighbour) matrix[x][y].value = i + 1;
         }
     }
 }
 
+// Get new x position when backtracing
 int getNewX(int x, int y, int i, int ignore) {
     if (ignore) return x;
     int newx = x;
@@ -125,6 +122,7 @@ int getNewX(int x, int y, int i, int ignore) {
     return newx;
 }
 
+// Get new y position when backtracing
 int getNewY(int x, int y, int i, int ignore) {
     if (ignore) return y;
     int newy = y;
@@ -144,10 +142,13 @@ int backtrace(Position *start) {
     }
 
     struct Position *point = start;
+
+    // go to end of list
     while (point->next != NULL && point->next->next !=NULL) point = point->next;
 
     int x, y, px, py;
 
+    // get previous location, if it exists
     if (point->next != NULL) {
         px = point->x;
         py = point->y;
@@ -173,14 +174,11 @@ int backtrace(Position *start) {
         newx = getNewX( x, y, i, newy - y ); // do not go diagonal
     }
 
-//    if (matrix[x][y].name[0] != 'e' && matrix[x][y].name[0] != '\0') {
-//        printf("%s\n", matrix[x][y].name);
-//    }
-
+    // add position to list
     Position *newpos = createPosition(newx, newy);
-
     point->next = newpos;
 
+    // return '1' if not done backtracing
     if (matrix[x][y].value > 1) {
         return 1;
     }
@@ -188,6 +186,7 @@ int backtrace(Position *start) {
     return 0;
 }
 
+// Find position by name string
 Position *findByName(char *name) {
     Position *pos = createPosition(-1, -1);
     int x, y;
@@ -204,6 +203,7 @@ Position *findByName(char *name) {
     return pos;
 }
 
+// set all cells that are not blocked back to 0
 void reset() {
     int x, y;
     for (y = 0; y < N; y++) {
@@ -213,6 +213,7 @@ void reset() {
     }
 }
 
+// create the matrix
 void constructMatrix () {
     int x, y;
 
@@ -227,6 +228,8 @@ void constructMatrix () {
         }
     }
 }
+
+// Print the names of all the matrix cells
 void printMatrixNames() {
     Cell c;
     int x, y, i, end;
@@ -252,6 +255,7 @@ void printMatrixNames() {
     }
 }
 
+// Status of the robot on the matrix
 void printMatrix(Position *pos, Position *points) {
     Cell c;
     Position *temp;
@@ -272,8 +276,9 @@ void printMatrix(Position *pos, Position *points) {
                 n++;
             }
 
-            if (c.value < -1 ) l = 'M';
-            if (x == pos->x && y == pos->y) l = '@';
+            if (c.value < -1 ) l = 'M'; // mines
+            if (x == pos->x && y == pos->y) l = '@'; // 'at' position of robot
+            // robot direction
             if (pos->next && x == pos->next->x && y == pos->next->y){
                 if ( (x - pos->x) == 1 && (y - pos->y == 0) ) l = '>';
                 if ( (x - pos->x) == -1 && (y - pos->y == 0) ) l = '<';
@@ -286,11 +291,13 @@ void printMatrix(Position *pos, Position *points) {
     }
 }
 
+// join two route lists
 void joinRoutes(Position *list, Position *list2) {
     while (list->next && list->next->next) list = list-> next;
     list->next = list2->next;
 }
 
+// print char as binary
 char *charToBinary(char c) {
     int i = 0;
     char *output = malloc (9 * sizeof(char));
@@ -302,16 +309,19 @@ char *charToBinary(char c) {
     return output;
 }
 
+// get the one before the last position in the list
 Position *getLastPosition(Position *start){
     while (start && start->next) start = start->next;
     return start;
 }
 
+// add a position to the position list
 void appendPosition(Position *start, Position *new_pos) {
     start = getLastPosition(start);
     start->next = new_pos;
 }
 
+// check if the list contains a point
 int containsPosition(Position *start, Position *point) {
     for (; start; start = start->next) {
         if (start->x == point->x && start->y == point->y) return 1;

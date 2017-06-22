@@ -16,16 +16,6 @@ struct Position {
 };
 typedef struct Position Position;
 
-// Route
-typedef struct RoutePoint {
-    int x;
-    int y;
-    struct RoutePoint *left;
-    struct RoutePoint *right;
-    struct RoutePoint *up;
-    struct RoutePoint *down;
-} RoutePoint;
-
 // GLOBAL VARS
 extern const int MATRIX_VALUES[11][11];
 extern const char *MATRIX_NAMES[11][11];

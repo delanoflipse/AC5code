@@ -16,7 +16,8 @@ int main() {
 
     char opt;
     while (1) {
-        printf("------------------------------------------------------------------\n");
+        // Send initial options
+        printf("\n------------------------------------------------------------------\n");
         printf("- AC5 SMART ROBOT CHALLENGE\n");
         printf("------------------------------------------------------------------\n\n");
         printf("Choose what to do:\n");
@@ -43,6 +44,7 @@ int main() {
 
     }
 
+    // End, say goodbye
     closeSerial();
 
     return 0;
