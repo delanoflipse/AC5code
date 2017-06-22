@@ -14,12 +14,12 @@ char START_SIGNAL    = 0b01111000;
 
 void challenge1() {
     char pos_str[8], input;
-    time_t last_time, current_time;
+    clock_t last_time, current_time;
     double dt;
 
     Position *start = NULL, *list, *last, *at;
 
-    time ( &last_time );
+    last_time = clock();
     int n = 0, i = 0;
     Position *temp;
 
@@ -46,9 +46,7 @@ void challenge1() {
                 return;
             }
         } else {
-            temp = start;
-            while (temp->next) temp = temp->next;
-
+            temp = getLastPosition(start);
             temp->next = findByName(pos_str);
 
             if (temp->next->x == -1 || temp->next->y == -1) {
@@ -73,75 +71,74 @@ void challenge1() {
     }
 
     at = start;
+    last = list;
 
-    // TODO: SEND INITIAL SIGNAL
     system("@cls||clear");
     printf("START\n");
-    list = list->next;
-    printf("Now at (%d, %d)\n", list->x, list->y);
 
     writeByte(&START_SIGNAL);
     getDirection(list);
 
+    list = list->next; // set correct start for robot logic(as in: next crossing is the corner after the number)
+    printf("Now at (%d, %d)\n", list->x, list->y);
+
     printMatrix(list, start);
-
-
 
     char inp, inp_bin[9];
     while (list->next) {
-        char x = input;
-        while (x == input) {
+//        char x = input;
+//        while (x == input) {
             readByte(&input);
-        }
+//        }
 
         system("@cls||clear");
+        printf("Recieved: %c [%s]\n", input, charToBinary(input));
 
-        itoa(input, inp_bin, 2);
-        printf("Recieved: %c [%s]\n", input, inp_bin);
-
-        time( &current_time );
-        dt = difftime(current_time, last_time);
-        if (dt >= 1) {
-            last_time = current_time;
-        }
+        current_time = clock();
+        dt = (double) (current_time - last_time) / CLOCKS_PER_SEC;
 
         printf("dt: %f\n", dt);
 
         if (input == 'q') break;
-        else if(input == 0b00011111 || input == 0b00011110) {
+        else if(input == 0b01111000) {
+//        else if(input == 0b00011111 || input == 0b00011110) {
 //        else if(input == 'x') {
             printf("n: %d\n", ++i);
-            if (list->next && list->next->next) {
+            if (list->next && list->next->next && list->next->next->next) {
                 // Check for checkpoints
-                if (at->next && list->next->x == at->next->x && list->next->y == at->y) {
+                if (at->next && list->next->x == at->next->x && list->next->y == at->next->y) {
                     at = at->next;
-                    printf("Arrived at %s\n", matrix[at->x][at->y].name);
+                    printf("Arriving at %s\n", matrix[at->x][at->y].name);
                 }
 
                 getDirection(list);
-                if (dt >= 1) {
+
+                if (dt >= 0.5) {
                     last = list;
                     list = list->next;
+                    last_time = current_time;
                 }
             } else {
                 break;
             }
-        } else if(input == 0b11100001 || input == 0b11100000){
+        } else if(input == 0b01101101){
+//        } else if(input == 0b11100001 || input == 0b11100000){
 //        } else if(input == 'x'){
-            matrix[list->x][list->y].value = -1;
+            matrix[list->x][list->y].value = -10;
             Position *newlist;
-            printf("blocked edge! @ %s\n", matrix[list->x][list->y].name);
+            printf("Mine found! @ %s\n", matrix[list->x][list->y].name);
             newlist = getRoute(last, at->next);
             temp = at->next;
+
             while (temp->next) {
                 joinRoutes(newlist, getRoute(temp, temp->next));
-
                 temp = temp->next;
             }
 
             list = createPosition(list->x, list->y);
             list->next = newlist;
             getDirection(list);
+            list = list->next;
         }
 
         printf("Now at (%d, %d)\n", list->x, list->y);
@@ -149,7 +146,6 @@ void challenge1() {
     }
 
     writeByte(&STOP_STATE);
-    // TODO: SEND STOP SIGNAL
 }
 
 void getDirection(Position *list) {

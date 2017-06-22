@@ -2,6 +2,9 @@
 // Created by Delano on 01/06/2017.
 //
 
+#include "matrix.h"
+#include "conio.h"
+
 #ifndef SRC_SERIAL_H
 #define SRC_SERIAL_H
 

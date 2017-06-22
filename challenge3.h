@@ -5,6 +5,6 @@
 #ifndef SRC_CHALLENGE3_H
 #define SRC_CHALLENGE3_H
 
-void challenge3();
+void challenge3(int run2);
 
 #endif //SRC_CHALLENGE3_H

@@ -6,6 +6,9 @@
 //           Stopbits, Parity and Timeoutparameters of
 //           the COM port
 //--------------------------------------------------------------
+
+int canUseSerial = 0;
+
 int initSio(){
 
     COMMTIMEOUTS timeouts ={0};
@@ -43,6 +46,7 @@ int initSio(){
         return 0;
     }
 
+    canUseSerial = 1;
     return 1;
 }
 
@@ -52,6 +56,10 @@ int initSio(){
 //              buffer buffRead
 //--------------------------------------------------------------
 int readByte( char *buffRead) {
+    if (!canUseSerial) {
+        *buffRead = getch();
+        return 1;
+    }
 
     DWORD dwBytesRead = 0;
 
@@ -70,6 +78,11 @@ int readByte( char *buffRead) {
 //              the COM port
 //--------------------------------------------------------------
 int writeByte(char *buffWrite){
+
+    if (!canUseSerial) {
+        printf("Writing: %c [%s] over fake serial.\n", *buffWrite, charToBinary(*buffWrite));
+        return 1;
+    }
 
     DWORD dwBytesWritten = 0;
 

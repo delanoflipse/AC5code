@@ -8,7 +8,8 @@ char state = 0b00001000;
 
 int main() {
     if (!serialInit()) {
-        return 0;
+        printf("------------------------------------------------------------------\n");
+        printf("- !!!! ERROR: NO SERIAL CONNECTION\n");
     }
 
     writeByte(&state); // Reset robot by sending unused state identifier
@@ -21,7 +22,7 @@ int main() {
         printf("Choose what to do:\n");
         printf("1: Challenge 1. Go to a number of checkpoints\n");
         printf("2: Challenge 2. Go to checkpoints with mines in the way\n");
-        printf("3: Challenge 3. (WIP)\n");
+        printf("3: Challenge 3. Treasure hunt\n");
         printf("4: Serial debug\n");
         printf("other: Exit\n");
         printf("Your choice: ");
@@ -32,7 +33,7 @@ int main() {
             challenge1();
         } else if (opt == '3') {
             // Run assignment one
-            challenge3();
+            challenge3(0);
         } else if (opt == '4') {
             // Run assignment one
             debug();
